@@ -6,7 +6,7 @@ const resolvers = {
     Query: {
         me: async (parent, args, context) => {
             if(context.user) {
-                const userData = await User.findOne({_id: context.user._id}).select('-__v -password');
+                const userData = await User.findOne({_id: context.user._id}).populate('savedBooks');
 
                 return userData;
             }
@@ -38,73 +38,30 @@ const resolvers = {
       
             return { token, user };
           },
-          addThought: async (parent, { thoughtText }, context) => {
+          saveBook: async (parent, { book }, context) => {
             if (context.user) {
-              const thought = await Thought.create({
-                thoughtText,
-                thoughtAuthor: context.user.username,
-              });
-      
-              await User.findOneAndUpdate(
-                { _id: context.user._id },
-                { $addToSet: { thoughts: thought._id } }
-              );
-      
-              return thought;
+                const updatedUser = await User.findOneAndUpdate(
+                    { _id: context.user._id },
+                    { $addToSet: {savedBooks: book} },
+                    { new: true }
+                )
+                .populate('savedBook');
+    
+                return updatedUser;
             }
-            throw new AuthenticationError('You need to be logged in!');
-          },
-          addComment: async (parent, { thoughtId, commentText }, context) => {
-            if (context.user) {
-              return Thought.findOneAndUpdate(
-                { _id: thoughtId },
-                {
-                  $addToSet: {
-                    comments: { commentText, commentAuthor: context.user.username },
-                  },
-                },
-                {
-                  new: true,
-                  runValidators: true,
-                }
-              );
-            }
-            throw new AuthenticationError('You need to be logged in!');
-          },
-          removeThought: async (parent, { thoughtId }, context) => {
-            if (context.user) {
-              const thought = await Thought.findOneAndDelete({
-                _id: thoughtId,
-                thoughtAuthor: context.user.username,
-              });
-      
-              await User.findOneAndUpdate(
-                { _id: context.user._id },
-                { $pull: { thoughts: thought._id } }
-              );
-      
-              return thought;
-            }
-            throw new AuthenticationError('You need to be logged in!');
-          },
-          removeComment: async (parent, { thoughtId, commentId }, context) => {
-            if (context.user) {
-              return Thought.findOneAndUpdate(
-                { _id: thoughtId },
-                {
-                  $pull: {
-                    comments: {
-                      _id: commentId,
-                      commentAuthor: context.user.username,
-                    },
-                  },
-                },
-                { new: true }
-              );
-            }
-            throw new AuthenticationError('You need to be logged in!');
-          },
+            throw new AuthenticationError('You need to be logged in!')
         },
-      };
-      
-      module.exports = resolvers;      
+        removeBook: async (parent, { bookId }, context) => {
+            if (context.user) {
+                const updatedUser = await User.findOneAndUpdate(
+                    {_id: context.user._id},
+                    { $pull: { savedBooks: { bookId: bookId } } },
+                    { new: true }
+                )
+                return updatedUser;
+            }
+        }
+    }
+  };
+  
+  module.exports = resolvers;
