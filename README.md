@@ -43,7 +43,7 @@ THEN I am logged out of the site and presented with a menu with the options Sear
 <img src="./images/Screenshot 2023-09-05 at 23.08.12.jpeg"><img/>
 
 # Link to deployed application
-<link src="https://sleepy-wildwood-87085-9e3cb635cd89.herokuapp.com"/>
+https://sleepy-wildwood-87085-9e3cb635cd89.herokuapp.com
 
 # License
 N/A
